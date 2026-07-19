@@ -1,4 +1,4 @@
-from app.db.database import get_collection
+from app.core.database import get_collection
 from app.repositories.base_repository import BaseRepository
 
 

@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.logger import logger, setup_logger
-from app.db.database import (
+from app.core.database import (
     close_mongo_connection,
     connect_to_mongo,
 )
