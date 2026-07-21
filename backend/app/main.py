@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from app.api.v1.router import api_router
 from app.core.config import settings
 from app.core.lifespan import lifespan
+from app.core.handlers import register_exception_handlers
 
 # Why use lifespan?
 # Older FastAPI versions used:
@@ -23,7 +24,7 @@ app = FastAPI(
     version=settings.APP_VERSION,
     lifespan=lifespan,
 )
-# register_exception_handlers(app)
+register_exception_handlers(app)
 
 app.include_router(
     api_router,

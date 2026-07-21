@@ -41,19 +41,22 @@
 - FastAPI lifespan
 - Health endpoint
 - Swagger integration
+- Global exception classes
+- Exception handlers
+- Standard API responses
 
 ---
 
 # Current Task
 Current Milestone: Milestone 2 ✅
 
+
 ---
 
 # Next Task
 
-- Global exception handling
-- Standard API responses
-- Shared utilities
+- Generic Repository
+- CRUD foundation
 
 ---
 
