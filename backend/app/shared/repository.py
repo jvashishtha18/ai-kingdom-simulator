@@ -1,7 +1,8 @@
 from typing import Any
 from motor.motor_asyncio import AsyncIOMotorCollection
-from bson import ObjectId
+from app.shared.object_id import to_object_id
 from app.core.exceptions import NotFoundException
+from pymongo import ReturnDocument
 
 # we centralize those operations in one place.
 # inherits all CRUD methods automatically.
@@ -20,7 +21,7 @@ class BaseRepository:
     async def get_by_id(self, document_id: str):
         document = await self.collection.find_one(
             {
-                "_id": ObjectId(document_id)
+                "_id": to_object_id(document_id)
             }
         )
         if not document:
@@ -30,38 +31,45 @@ class BaseRepository:
     
     async def delete(self,document_id: str,):
         result = await self.collection.delete_one({
-          "_id": ObjectId(document_id)  
+          "_id": to_object_id(document_id)  
         })
         if result.deleted_count == 0:
             raise NotFoundException("Document not found")
         return True
     
     async def update(self,document_id: str,data: dict[str, Any])->dict[str, Any]:
-        result = await self.collection.update_one(
-            {
-                "_id": ObjectId(document_id)
-            },
-            {
-                "$set": data
-            },
+         return await self.collection.find_one_and_update(
+            {"_id": to_object_id(document_id)},
+            {"$set": data},
+            return_document=ReturnDocument.AFTER,
         )
-        if result.matched_count == 0:
-            raise NotFoundException("Document not found")
-        
-        return await self.get_by_id(document_id)
     
     async def list(
         self,
-        filters: dict[str, Any] | None = None,
-        limit: int = 100,
-        skip: int = 0,
-    )->list[dict[str, Any]]:
+        *,
+        filter_query: dict[str, Any] | None = None,
+        page: int = 1,
+        page_size: int = 20,
+        sort_field: str = "_id",
+        sort_order: int = 1,
+    ):
+        filter_query = filter_query or {}
 
-        filters = filters or {}
+        cursor = (
+            self.collection.find(filter_query)
+            .sort(sort_field, sort_order)
+            .skip((page - 1) * page_size)
+            .limit(page_size)
+        )
 
-        documents = await self.collection.find(filters).skip(skip).limit(limit).to_list(limit)
-        for document in documents:
-            document["_id"] = str(document["_id"])
-        return documents
+        return await cursor.to_list(length=page_size)
+
+    async def count(
+        self,
+        filter_query: dict[str, Any] | None = None,
+    ) -> int:
+        return await self.collection.count_documents(
+            filter_query or {}
+        )
     
 

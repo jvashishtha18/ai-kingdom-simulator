@@ -44,6 +44,9 @@
 - Global exception classes
 - Exception handlers
 - Standard API responses
+- Generic Repository
+- CRUD foundation
+- Pagination support
 
 ---
 
@@ -55,8 +58,7 @@ Current Milestone: Milestone 2 ✅
 
 # Next Task
 
-- Generic Repository
-- CRUD foundation
+Authentication Module
 
 ---
 
