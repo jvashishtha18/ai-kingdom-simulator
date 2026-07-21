@@ -1,13 +1,7 @@
-from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from app.api.v1.router import api_router
 from app.core.config import settings
-from app.core.logger import logger, setup_logger
-from app.core.database import (
-    close_mongo_connection,
-    connect_to_mongo,
-)
-from app.core.exception_handlers import register_exception_handlers
+from app.core.lifespan import lifespan
 
 # Why use lifespan?
 # Older FastAPI versions used:
@@ -23,17 +17,6 @@ from app.core.exception_handlers import register_exception_handlers
 # ↓
 # Close Mongo
 # Everything related to startup and shutdown stays together.
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    setup_logger()
-    logger.info("Starting application...")
-    await connect_to_mongo()
-    logger.info("MongoDB connected.")
-    yield
-    logger.info("Stopping application...")
-    await close_mongo_connection()
-    logger.info("MongoDB disconnected.")
 
 app = FastAPI(
     title=settings.APP_NAME,

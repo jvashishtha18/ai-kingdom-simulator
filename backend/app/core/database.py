@@ -23,13 +23,17 @@ async def close_mongo_connection() -> None:
         client.close()
 
 
+
+def get_database() -> AsyncIOMotorDatabase:
+    if database is None:
+        raise RuntimeError("Database has not been initialized.")
+
+    return database
+
 # Now, instead of accessing the database directly:
 # db["users"]
 # we'll consistently use:
 # get_collection("users")
 # This keeps our code cleaner and makes it easier to change the implementation later if needed.
 def get_collection(name: str) -> AsyncIOMotorCollection:
-    if database is None:
-        raise RuntimeError("Database has not been initialized.")
-
-    return database[name]
+     return get_database()[name]
