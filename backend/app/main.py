@@ -7,6 +7,7 @@ from app.core.database import (
     close_mongo_connection,
     connect_to_mongo,
 )
+from app.core.exception_handlers import register_exception_handlers
 
 # Why use lifespan?
 # Older FastAPI versions used:
@@ -39,6 +40,7 @@ app = FastAPI(
     version=settings.APP_VERSION,
     lifespan=lifespan,
 )
+# register_exception_handlers(app)
 
 app.include_router(
     api_router,

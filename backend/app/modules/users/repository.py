@@ -1,5 +1,5 @@
 from app.core.database import get_collection
-from app.repositories.base_repository import BaseRepository
+from app.shared.repositories.base_repository import BaseRepository
 
 
 class UserRepository(BaseRepository):
@@ -13,8 +13,11 @@ class UserRepository(BaseRepository):
         self,
         email: str,
     ):
-        return await self.collection.find_one(
+        user = await self.collection.find_one(
             {
                 "email": email
             }
         )
+        if user:
+            user["_id"]= str(user["_id"])
+        return user
