@@ -1,5 +1,5 @@
 from app.core.database import get_collection
-from app.shared.repositories.base_repository import BaseRepository
+from backend.app.shared.repository import BaseRepository
 
 
 class UserRepository(BaseRepository):
