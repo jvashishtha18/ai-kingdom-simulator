@@ -10,35 +10,36 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.modules.auth.schemas import TokenResponse
 from app.modules.users.repository import UserRepository
+from app.modules.users.model import UserModel
 from app.modules.users.schemas import (
     LoginRequest,
     RegisterRequest,
     UserResponse,
+    TokenResponse
 )
 
 class AuthService:
     def __init__(self,user_repository:UserRepository):
         self.user_repository = user_repository
     async def register(self,request:RegisterRequest)->UserResponse:
-        existing_user = await self.user_repository.find_by_email(request.email)
+        existing_user = await self.user_repository.email_exists(request.email)
 
         if existing_user:
             raise ConflictException("Email already registered.")
         
-        document = {
-            "name": request.name,
-            "email": request.email,
-            "password_hash": hash_password(
+        user = UserModel(
+            name=request.name,
+            email=request.email,
+            password_hash=hash_password(
                 request.password
             ),
-            "is_active": True,
-            "created_at": datetime.now(UTC),
-            "updated_at": datetime.now(UTC),
-        }
+            is_active=True,
+            created_at=datetime.now(UTC),
+            updated_at=datetime.now(UTC),
+        )
 
-        user_id = await self.user_repository.create(document)
+        user_id = await self.user_repository.create(user.model_dump(exclude={"id"}))
 
         return UserResponse(
             id = user_id,

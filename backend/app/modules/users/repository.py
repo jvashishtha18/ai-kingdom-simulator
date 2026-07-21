@@ -1,5 +1,8 @@
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.shared.repository import BaseRepository
+from bson import ObjectId
+
+from app.modules.users.model import UserModel
 
 
 class UserRepository(BaseRepository):
@@ -10,20 +13,34 @@ class UserRepository(BaseRepository):
         super().__init__(
             database[self.COLLECTION_NAME]
         )
+    
+    def _to_model(self, document: dict | None) -> UserModel | None:
+     if document is None:
+        return None
+
+     return UserModel(
+        id=str(document["_id"]),
+        name=document["name"],
+        email=document["email"],
+        password_hash=document["password_hash"],
+        is_active=document["is_active"],
+        created_at=document["created_at"],
+        updated_at=document["updated_at"],
+    )
 
     async def find_by_email(
         self,
         email: str,
-    ):
-        user = await self.collection.find_one(
+    ) -> UserModel | None:
+
+        document = await self.collection.find_one(
             {
                 "email": email.lower()
             }
         )
-        if user:
-            user["_id"]= str(user["_id"])
-        return user
-    
+
+        return self._to_model(document)
+
     async def email_exists(self, email: str) -> bool:
         return (
             await self.collection.count_documents(

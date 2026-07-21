@@ -3,6 +3,7 @@ from motor.motor_asyncio import AsyncIOMotorCollection
 from app.shared.object_id import to_object_id
 from app.core.exceptions import NotFoundException
 from pymongo import ReturnDocument
+from app.modules.users.model import UserModel
 
 # we centralize those operations in one place.
 # inherits all CRUD methods automatically.
@@ -18,17 +19,17 @@ class BaseRepository:
         result = self.collection.insert_one(data)
         return str(result.inserted_id)
     
-    async def get_by_id(self, document_id: str):
+    async def get_by_id(
+    self,
+    user_id: str,
+    ) -> UserModel | None:
         document = await self.collection.find_one(
             {
-                "_id": to_object_id(document_id)
+                "_id": to_object_id(user_id)
             }
         )
-        if not document:
-            raise NotFoundException("Document not found")
-        document['_id']=str(document["_id"])
-        return document
-    
+        return self._to_model(document)
+
     async def delete(self,document_id: str,):
         result = await self.collection.delete_one({
           "_id": to_object_id(document_id)  

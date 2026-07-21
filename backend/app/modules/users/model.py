@@ -1,24 +1,24 @@
-from datetime import UTC, datetime
-from typing import Any
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
-def create_user_document(
-    *,
-    name: str,
-    email: str,
-    password_hash: str,
-) -> dict[str, Any]:
+class UserModel(BaseModel):
     """
-    Factory function to create a MongoDB user document.
+    Internal user domain model.
+    Used inside the backend only.
     """
 
-    now = datetime.now(UTC)
+    id: str | None = None
+    name: str
+    email: EmailStr
+    password_hash: str
+    is_active: bool = True
 
-    return {
-        "name": name,
-        "email": email.lower(),
-        "password_hash": password_hash,
-        "is_active": True,
-        "created_at": now,
-        "updated_at": now,
-    }
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        populate_by_name=True,
+    )
