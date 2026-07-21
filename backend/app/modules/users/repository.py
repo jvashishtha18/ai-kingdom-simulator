@@ -1,12 +1,14 @@
-from app.core.database import get_collection
-from backend.app.shared.repository import BaseRepository
+from motor.motor_asyncio import AsyncIOMotorDatabase
+from app.shared.repository import BaseRepository
 
 
 class UserRepository(BaseRepository):
 
-    def __init__(self):
+    COLLECTION_NAME = "users"
+
+    def __init__(self,database: AsyncIOMotorDatabase):
         super().__init__(
-            get_collection("users")
+            database[self.COLLECTION_NAME]
         )
 
     async def find_by_email(
@@ -15,9 +17,17 @@ class UserRepository(BaseRepository):
     ):
         user = await self.collection.find_one(
             {
-                "email": email
+                "email": email.lower()
             }
         )
         if user:
             user["_id"]= str(user["_id"])
         return user
+    
+    async def email_exists(self, email: str) -> bool:
+        return (
+            await self.collection.count_documents(
+                {"email": email.lower()},
+                limit=1,
+            )
+        ) > 0
