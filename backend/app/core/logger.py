@@ -1,5 +1,6 @@
 import logging
 import sys
+from app.core.config import settings
 
 LOG_FORMAT = (
     "%(asctime)s | "
@@ -11,10 +12,11 @@ LOG_FORMAT = (
 
 def setup_logger() -> None:
     logging.basicConfig(
-        level=logging.INFO,
+        level=settings.LOG_LEVEL,
         format=LOG_FORMAT,
         handlers=[logging.StreamHandler(sys.stdout)],
+        force= True,
     )
 
 
-logger = logging.getLogger("ai-world-engine")
+logger = logging.getLogger("ai_kingdom")
