@@ -11,14 +11,20 @@ from app.modules.worlds.schemas import (
     WorldSummaryResponse,
 )
 from app.shared.utils import utc_now
+from app.modules.resources.service import ResourceService
 
 
 class WorldService:
     """
     Business logic for World operations.
     """
-    def __init__(self, repository: WorldRepository):
+    def __init__(
+        self, 
+        repository: WorldRepository,
+        resource_service: ResourceService,
+        ):
         self.repository = repository
+        self.resource_service = resource_service
     
     async def _get_world_or_raise(
         self,
@@ -61,6 +67,9 @@ class WorldService:
         )
 
         world_id = await self.repository.create_world(world)
+        
+        await self.resource_service.initialize_resources( world_id=world_id)
+        
         created_world = await self.repository.get_by_id(
             world_id=world_id,
             owner_id=owner_id,

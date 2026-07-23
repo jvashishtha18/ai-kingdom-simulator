@@ -3,11 +3,19 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from fastapi.security import OAuth2PasswordBearer
 
 from app.core.database import get_database
+
 from app.modules.auth.service import AuthService
 from app.modules.auth.repository import UserRepository
+from app.core.security import decode_access_token
+
 from app.modules.worlds.repository import WorldRepository
 from app.modules.worlds.service import WorldService
-from app.core.security import decode_access_token
+
+from app.modules.resources.repository import ResourceRepository
+from app.modules.resources.service import ResourceService
+
+
+
 
 
 def get_db() -> AsyncIOMotorDatabase:
@@ -52,8 +60,20 @@ def get_world_repository(
 ) -> WorldRepository:
     return WorldRepository(db)
 
+def get_resource_repository(
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> ResourceRepository:
+    return ResourceRepository(db)
+
+def get_resource_service(
+    repository: ResourceRepository = Depends(get_resource_repository),
+) -> ResourceService:
+    return ResourceService(repository)
 
 def get_world_service(
     repository: WorldRepository = Depends(get_world_repository),
+    resource_service: ResourceService = Depends(get_resource_service)
 ) -> WorldService:
-    return WorldService(repository)
+    return WorldService(
+        repository=repository,
+        resource_service=resource_service,)
