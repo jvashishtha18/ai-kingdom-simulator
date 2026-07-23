@@ -3,25 +3,35 @@ from typing import List
 from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.shared.repository import BaseRepository
 from app.modules.worlds.models import WorldModel
+from app.shared.object_id import to_object_id
+
 
 
 class WorldRepository(BaseRepository):
-
-    COLLECTION_NAME =  "worlds"
+    COLLECTION_NAME = "worlds"
 
     def __init__(self, db: AsyncIOMotorDatabase):
-        super().__init__(db,self.COLLECTION_NAME)
+        super().__init__(db[self.COLLECTION_NAME])
 
-    async def create_world(self, world: WorldModel):
+    async def create_world(self, world: WorldModel)-> str:
         return await self.create(world.model_dump())
 
-    async def get_world(self, world_id: str):
-        return await self.get_by_id(world_id)
+    async def get_by_id(
+    self,
+    world_id: str,
+    owner_id: str,
+) -> dict | None:
+        return await self.collection.find_one(
+    {
+        "_id": to_object_id(world_id),
+        "owner_id": owner_id,
+    }
+)
 
     async def list_worlds_by_owner(
         self,
         owner_id: str,
-    ) -> List[dict]:
+) -> List[dict]:
         return await self.find(
             {
                 "owner_id": owner_id,
@@ -42,19 +52,30 @@ class WorldRepository(BaseRepository):
         )
 
         return world is not None
-
+    
     async def update_world(
-        self,
-        world_id: str,
-        data: dict,
-    ):
+    self,
+    world_id: str,
+    owner_id: str,
+    update_data: dict,
+) -> dict | None:
+        
         return await self.update(
-            world_id,
-            data,
+            filter_query={
+                "_id": to_object_id(world_id),
+                "owner_id": owner_id,
+            },
+            update_data=update_data,
         )
 
     async def delete_world(
-        self,
-        world_id: str,
-    ):
-        return await self.delete(world_id)
+    self,
+    world_id: str,
+    owner_id: str,
+):
+        return await self.delete(
+            {
+                "_id": to_object_id(world_id),
+                "owner_id": owner_id,
+            }
+        )

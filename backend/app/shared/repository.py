@@ -3,7 +3,6 @@ from motor.motor_asyncio import AsyncIOMotorCollection
 from app.shared.object_id import to_object_id
 from app.core.exceptions import NotFoundException
 from pymongo import ReturnDocument
-from app.modules.auth.models import UserModel
 
 # we centralize those operations in one place.
 # inherits all CRUD methods automatically.
@@ -15,37 +14,36 @@ class BaseRepository:
     ):
         self.collection = collection
     
-    async def create(self,data: dict):
+    async def create(self,data: dict)-> str:
         result = await self.collection.insert_one(data)
         return str(result.inserted_id)
     
     async def get_by_id(
     self,
-    user_id: str,
-    ) -> UserModel | None:
-        document = await self.collection.find_one(
+    document_id: str,
+    ) -> dict[str, Any] | None:
+        return await self.collection.find_one(
             {
-                "_id": to_object_id(user_id)
+                "_id": to_object_id(document_id)
             }
         )
-        return self._to_model(document)
+         
 
-    async def delete(self,document_id: str,):
-        result = await self.collection.delete_one({
-          "_id": to_object_id(document_id)  
-        })
+    async def delete(self,filter_query: dict[str, Any],) -> bool:
+        result = await self.collection.delete_one(filter_query)
+
         if result.deleted_count == 0:
             raise NotFoundException("Document not found")
         return True
     
-    async def update(self,document_id: str,data: dict[str, Any])->dict[str, Any]:
-         return await self.collection.find_one_and_update(
-            {"_id": to_object_id(document_id)},
-            {"$set": data},
+    async def update(self, filter_query: dict[str, Any], update_data: dict[str, Any],)-> dict[str, Any] | None:
+        return await self.collection.find_one_and_update(
+            filter_query,
+            {"$set": update_data},
             return_document=ReturnDocument.AFTER,
         )
     
-    async def list(
+    async def find(
         self,
         *,
         filter_query: dict[str, Any] | None = None,
@@ -53,7 +51,7 @@ class BaseRepository:
         page_size: int = 20,
         sort_field: str = "_id",
         sort_order: int = 1,
-    ):
+    )-> list[dict[str, Any]]:
         filter_query = filter_query or {}
 
         cursor = (
@@ -72,5 +70,11 @@ class BaseRepository:
         return await self.collection.count_documents(
             filter_query or {}
         )
+
+    async def find_one(
+    self,
+    filter_query: dict[str, Any],
+) -> dict[str, Any] | None:
+     return await self.collection.find_one(filter_query)
     
 

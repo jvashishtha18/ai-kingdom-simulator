@@ -1,5 +1,3 @@
-from datetime import UTC, datetime
-
 from app.core.exceptions import (
     WorldAlreadyExistsException,
     WorldNotFoundException,
@@ -12,6 +10,7 @@ from app.modules.worlds.schemas import (
     WorldResponse,
     WorldSummaryResponse,
 )
+from app.shared.utils import utc_now
 
 
 class WorldService:
@@ -20,6 +19,22 @@ class WorldService:
     """
     def __init__(self, repository: WorldRepository):
         self.repository = repository
+    
+    async def _get_world_or_raise(
+        self,
+     world_id: str,
+     owner_id: str,)-> dict:
+        world = await self.repository.get_by_id(
+            world_id=world_id,
+            owner_id=owner_id,
+        )
+
+        if world is None:
+            raise WorldNotFoundException(
+                details={"world_id": world_id}
+            )
+
+        return world
 
     async def create_world(
         self,
@@ -45,23 +60,23 @@ class WorldService:
             race=request.race,
         )
 
-        created_world = await self.repository.create_world(world)
-
+        world_id = await self.repository.create_world(world)
+        created_world = await self.repository.get_by_id(
+            world_id=world_id,
+            owner_id=owner_id,
+        )
+        if created_world is None:
+            raise WorldNotFoundException(
+                details={"world_id": world_id}
+            )
         return WorldResponse(**created_world)
 
     async def get_world(
-        self,
-        world_id: str,
-    ) -> WorldResponse:
+        self, 
+        owner_id: str, 
+        world_id: str,) -> WorldResponse:
 
-        world = await self.repository.get_world(world_id)
-
-        if world is None:
-            raise WorldNotFoundException(
-                details={
-                    "world_id": world_id,
-                }
-            )
+        world = await self._get_world_or_raise( world_id,owner_id,)
 
         return WorldResponse(**world)
 
@@ -74,7 +89,7 @@ class WorldService:
 
         return [
             WorldSummaryResponse(
-                id=world["id"],
+                id=str(world["_id"]),
                 name=world["name"],
                 race=world["race"],
                 population=world["population"],
@@ -83,43 +98,34 @@ class WorldService:
         ]
 
     async def update_world(
-        self,
-        world_id: str,
-        request: UpdateWorldRequest,
-    ) -> WorldResponse:
+    self,
+    owner_id: str,
+    world_id: str,
+    request: UpdateWorldRequest,
+) -> WorldResponse:
 
-        world = await self.repository.get_world(world_id)
-
-        if world is None:
-            raise WorldNotFoundException(
-                details={
-                    "world_id": world_id,
-                }
-            )
-
+        await self._get_world_or_raise(world_id,owner_id,)
         update_data = request.model_dump(exclude_none=True)
 
-        update_data["updated_at"] = datetime.now(UTC)
+        update_data["updated_at"] = utc_now()
 
         updated_world = await self.repository.update_world(
-            world_id,
-            update_data,
+            world_id=world_id,
+            owner_id=owner_id,
+            update_data=update_data,
         )
-
+        if updated_world is None:
+            raise WorldNotFoundException(
+                details={"world_id": world_id}
+        )
         return WorldResponse(**updated_world)
 
     async def delete_world(
         self,
+        owner_id: str,
         world_id: str,
     ) -> None:
 
-        world = await self.repository.get_world(world_id)
+        await self._get_world_or_raise( world_id, owner_id,)
 
-        if world is None:
-            raise WorldNotFoundException(
-                details={
-                    "world_id": world_id,
-                }
-            )
-
-        await self.repository.delete_world(world_id)
+        await self.repository.delete_world(world_id=world_id,owner_id=owner_id,)
