@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.shared.repository import BaseRepository
 from bson import ObjectId
 
-from backend.app.modules.auth.models import UserModel
+from app.modules.auth.models import UserModel
 
 
 class UserRepository(BaseRepository):
@@ -23,6 +23,7 @@ class UserRepository(BaseRepository):
         name=document["name"],
         email=document["email"],
         password_hash=document["password_hash"],
+        role=document["role"],
         is_active=document["is_active"],
         created_at=document["created_at"],
         updated_at=document["updated_at"],

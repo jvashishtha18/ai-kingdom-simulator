@@ -14,7 +14,11 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=exc.status_code,
             content={
                 "success": False,
-                "message": exc.message,
+                "error": {
+                    "code": exc.error_code,
+                    "message": exc.message,
+                    "details": exc.details,
+                        },
             },
         )
 
@@ -27,6 +31,10 @@ def register_exception_handlers(app: FastAPI) -> None:
             status_code=500,
             content={
                 "success": False,
-                "message": "Internal server error",
+                "error": {
+                    "code": exc.error_code,
+                    "message": exc.message,
+                    "details": exc.details,
+        },
             },
         )

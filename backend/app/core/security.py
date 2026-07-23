@@ -20,6 +20,7 @@ def hash_password(password: str) -> str:
     """
     Hash a plain text password.
     """
+    print("PASSWORD LENGTH:", len(password.encode("utf-8")))
     return pwd_context.hash(password)
 
 

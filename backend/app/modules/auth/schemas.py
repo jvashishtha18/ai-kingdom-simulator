@@ -1,4 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from app.shared.enums import Role
+from app.core.config import settings
 # Why separate Schemas and Models?
 # Our internal database model contains:
 # password_hash
@@ -18,6 +20,7 @@ class RegisterRequest(BaseModel):
         min_length=8,
         max_length=100,
     )
+    role: Role
 
 
 class LoginRequest(BaseModel):
@@ -33,7 +36,16 @@ class UserResponse(BaseModel):
     name: str
     email: EmailStr
     is_active: bool
+    role: Role
 
-class TokenResponse(BaseModel):
+class AuthenticatedUser(BaseModel):
+    id: str
+    name: str
+    email: EmailStr
+    role: Role
+
+class LoginResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    expires_in: int = settings.ACCESS_TOKEN_EXPIRE_MINUTES
+    user: AuthenticatedUser

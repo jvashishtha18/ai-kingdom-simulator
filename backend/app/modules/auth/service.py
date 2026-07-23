@@ -10,13 +10,15 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from backend.app.modules.auth.repository import UserRepository
-from backend.app.modules.auth.models import UserModel
+from app.core.config import settings
+from app.modules.auth.repository import UserRepository
+from app.modules.auth.models import UserModel
 from app.modules.auth.schemas import (
     LoginRequest,
     RegisterRequest,
     UserResponse,
-    TokenResponse
+    LoginResponse,
+    AuthenticatedUser
 )
 from app.shared.utils import utc_now
 
@@ -36,28 +38,40 @@ class AuthService:
                 request.password
             ),
             is_active=True,
+            role=request.role,
             created_at=utc_now(),
             updated_at=utc_now(),
         )
 
         user_id = await self.user_repository.create(user.model_dump(exclude={"id"}))
-
+        user.id = str(user_id)
         return user.to_response()
     
-    async def login(self,request:LoginRequest)->TokenResponse:
+    async def login(self,request:LoginRequest)->LoginResponse:
         user = await self.user_repository.find_by_email(request.email)
         if not user:
             raise UnauthorizedException(
                 "Invalid email or password."
             )
-        if not verify_password(request.password):
+        if not verify_password(
+            request.password,
+            user.password_hash,
+        ):
             raise UnauthorizedException(
                 "Invalid email or password."
             )
-        token = await create_access_token(str(user["_id"]))
-        return TokenResponse(
-            access_token = token
-        )
+        token = create_access_token(str(user.id))
+        return  LoginResponse(
+        access_token=token,
+        token_type="bearer",
+        expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+        user=AuthenticatedUser(
+            id=str(user.id),
+            name=user.name,
+            email=user.email,
+            role=user.role,
+        ),
+)
     
     async def get_current_user(self,user_id:str)->UserResponse:
         user = await self.user_repository.get_by_id(user_id)

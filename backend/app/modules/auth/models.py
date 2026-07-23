@@ -2,6 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 from app.modules.auth.schemas import UserResponse
+from app.shared.enums import Role
 
 
 class UserModel(BaseModel):
@@ -15,6 +16,7 @@ class UserModel(BaseModel):
     email: EmailStr
     password_hash: str
     is_active: bool = True
+    role:Role
 
     created_at: datetime
     updated_at: datetime
@@ -29,4 +31,5 @@ class UserModel(BaseModel):
             name=self.name,
             email=self.email,
             is_active=self.is_active,
+            role=self.role
         )

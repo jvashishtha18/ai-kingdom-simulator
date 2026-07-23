@@ -3,7 +3,7 @@ from motor.motor_asyncio import AsyncIOMotorCollection
 from app.shared.object_id import to_object_id
 from app.core.exceptions import NotFoundException
 from pymongo import ReturnDocument
-from backend.app.modules.auth.models import UserModel
+from app.modules.auth.models import UserModel
 
 # we centralize those operations in one place.
 # inherits all CRUD methods automatically.
@@ -16,7 +16,7 @@ class BaseRepository:
         self.collection = collection
     
     async def create(self,data: dict):
-        result = self.collection.insert_one(data)
+        result = await self.collection.insert_one(data)
         return str(result.inserted_id)
     
     async def get_by_id(
