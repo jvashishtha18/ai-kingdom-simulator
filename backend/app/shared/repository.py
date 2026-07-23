@@ -3,7 +3,7 @@ from motor.motor_asyncio import AsyncIOMotorCollection
 from app.shared.object_id import to_object_id
 from app.core.exceptions import NotFoundException
 from pymongo import ReturnDocument
-from backend.app.modules.auth.model import UserModel
+from backend.app.modules.auth.models import UserModel
 
 # we centralize those operations in one place.
 # inherits all CRUD methods automatically.

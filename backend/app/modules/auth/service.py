@@ -11,7 +11,7 @@ from app.core.security import (
     verify_password,
 )
 from backend.app.modules.auth.repository import UserRepository
-from backend.app.modules.auth.model import UserModel
+from backend.app.modules.auth.models import UserModel
 from app.modules.auth.schemas import (
     LoginRequest,
     RegisterRequest,
@@ -42,12 +42,7 @@ class AuthService:
 
         user_id = await self.user_repository.create(user.model_dump(exclude={"id"}))
 
-        return UserResponse(
-            id = user_id,
-            name = request.name,
-            email = request.email,
-            is_active = True
-        )
+        return user.to_response()
     
     async def login(self,request:LoginRequest)->TokenResponse:
         user = await self.user_repository.find_by_email(request.email)
@@ -70,12 +65,7 @@ class AuthService:
              raise NotFoundException(
                 "User not found."
             )
-        return UserResponse(
-            id=str(user["_id"]),
-            name=user["name"],
-            email=user["email"],
-            is_active=user["is_active"],
-        ) 
+        return user.to_response()
     
     # Why create a Service layer instead of putting everything inside the Router?
     # The Service layer contains business logic independent of HTTP. Routers handle 

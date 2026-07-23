@@ -13,25 +13,30 @@ class Settings(BaseSettings):
     APP_NAME: str = "AI Kingdom Simulator"
     API_PREFIX: str = "/api/v1"
     APP_VERSION:str = "1.0.0"
+    APP_ENV: str = "development"
 
     DEBUG: bool = True
 
     HOST: str = "0.0.0.0"
     PORT: int = 8000
 
-    SECRET_KEY: str = Field(...)
+    MONGODB_URL: str = Field(
+        default="mongodb://localhost:27017",
+    )
 
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    DATABASE_NAME: str = "ai_kingdom_simulator"
 
-    MONGODB_URL: str
-    DATABASE_NAME: str
+    SECRET_KEY: str
+    LOG_LEVEL: str
 
-    LOG_LEVEL: str = "INFO"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+
+    FRONTEND_URL: str = "http://localhost:5173"
 
     model_config = SettingsConfigDict(
         env_file=".env",
-        env_file_encoding="utf-8",
         case_sensitive=True,
+        extra="ignore",
     )
 
 
