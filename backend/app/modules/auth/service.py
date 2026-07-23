@@ -10,14 +10,15 @@ from app.core.security import (
     hash_password,
     verify_password,
 )
-from app.modules.users.repository import UserRepository
-from app.modules.users.model import UserModel
-from app.modules.users.schemas import (
+from backend.app.modules.auth.repository import UserRepository
+from backend.app.modules.auth.model import UserModel
+from app.modules.auth.schemas import (
     LoginRequest,
     RegisterRequest,
     UserResponse,
     TokenResponse
 )
+from app.shared.utils import utc_now
 
 class AuthService:
     def __init__(self,user_repository:UserRepository):
@@ -35,8 +36,8 @@ class AuthService:
                 request.password
             ),
             is_active=True,
-            created_at=datetime.now(UTC),
-            updated_at=datetime.now(UTC),
+            created_at=utc_now(),
+            updated_at=utc_now(),
         )
 
         user_id = await self.user_repository.create(user.model_dump(exclude={"id"}))

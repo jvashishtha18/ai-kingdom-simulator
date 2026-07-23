@@ -1,10 +1,11 @@
-from datetime import UTC, datetime, timedelta
+from datetime import timedelta
 from typing import Any
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
+from app.shared.utils import utc_now
 
 # Password hashing context
 pwd_context = CryptContext(
@@ -42,7 +43,7 @@ def create_access_token(
     """
     Create a JWT access token.
     """
-    expire = datetime.now(UTC) + timedelta(
+    expire = utc_now() + timedelta(
         minutes=expires_minutes
         or settings.ACCESS_TOKEN_EXPIRE_MINUTES
     )

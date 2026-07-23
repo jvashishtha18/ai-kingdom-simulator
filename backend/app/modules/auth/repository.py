@@ -2,7 +2,7 @@ from motor.motor_asyncio import AsyncIOMotorDatabase
 from app.shared.repository import BaseRepository
 from bson import ObjectId
 
-from app.modules.users.model import UserModel
+from backend.app.modules.auth.model import UserModel
 
 
 class UserRepository(BaseRepository):
