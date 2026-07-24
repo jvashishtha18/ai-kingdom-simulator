@@ -14,6 +14,9 @@ from app.modules.worlds.service import WorldService
 from app.modules.resources.repository import ResourceRepository
 from app.modules.resources.service import ResourceService
 
+from app.modules.buildings.repository import BuildingRepository
+from app.modules.buildings.service import BuildingService
+
 
 
 
@@ -77,3 +80,18 @@ def get_world_service(
     return WorldService(
         repository=repository,
         resource_service=resource_service,)
+    
+def get_building_repository(
+    db: AsyncIOMotorDatabase = Depends(get_database),
+) -> BuildingRepository:
+    return BuildingRepository(db)
+
+def get_building_service(
+    repository: BuildingRepository = Depends(get_building_repository),
+    resource_service: ResourceService = Depends(get_resource_service),
+) -> BuildingService:
+    return BuildingService(
+        repository=repository,
+        resource_service=resource_service,
+    )
+

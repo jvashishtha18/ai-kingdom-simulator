@@ -76,5 +76,11 @@ class BaseRepository:
     filter_query: dict[str, Any],
 ) -> dict[str, Any] | None:
      return await self.collection.find_one(filter_query)
+
+    async def exists(
+        self,
+        filter_query: dict,
+    ) -> bool:
+      return await self.find_one(filter_query) is not None
     
 

@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from app.api.v1.health import router as health_router
 from app.modules.auth.router import router as auth_router
 from app.modules.worlds.router import router as worlds_router
+from app.modules.buildings.routes import router as building_router
 
 
 api_router = APIRouter()
@@ -24,4 +25,10 @@ api_router.include_router(
     worlds_router,
     prefix="/worlds",
     tags=["Worlds"],
+)
+
+#Buildings
+api_router.include_router(
+    building_router,
+    tags=["Buildings"],
 )

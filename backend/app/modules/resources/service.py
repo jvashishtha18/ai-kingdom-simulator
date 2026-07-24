@@ -61,6 +61,14 @@ class ResourceService:
         """
         Checks if a world has enough of a single resource.
         """
+        if amount <=0:
+            raise InvalidResourceAmountException(
+                details={
+                "resource": resource_type.value,
+                "amount": amount,
+                }
+            )
+
         resources = await self.get_resources(
             world_id=world_id,
         )
@@ -78,6 +86,20 @@ class ResourceService:
         """
         Checks if a world has enough resources.
         """
+
+        if not required_resources:
+            raise InvalidResourceAmountException(
+        message="No resources provided."
+        )
+
+        for resource_type, amount in required_resources.items():
+            if amount <= 0:
+                raise InvalidResourceAmountException(
+                    details={
+                        "resource": resource_type.value,
+                        "amount": amount,
+                    }
+                )
 
         resources = await self.get_resources(
             world_id=world_id,
@@ -100,7 +122,7 @@ class ResourceService:
         world_id: str,
         resource_type: ResourceType,
         amount: int,
-    ) -> None:
+    ) -> ResourceModel:
         """
         Adds a single resource.
         """
@@ -112,19 +134,21 @@ class ResourceService:
                     "amount": amount,
                 }
             )
+        
 
-        await self.repository.update_resource(
+        updated = await self.repository.update_resource(
             world_id=world_id,
             resource_type=resource_type,
             amount=amount,
         )
+        return ResourceModel(**updated)
 
     async def consume_resource(
         self,
         world_id: str,
         resource_type: ResourceType,
         amount: int,
-    ) -> None:
+    ) -> ResourceModel:
         """
         Consumes a single resource.
         """
@@ -162,11 +186,12 @@ class ResourceService:
                 }
             )
 
-        await self.repository.update_resource(
+        updated = await self.repository.update_resource(
             world_id=world_id,
             resource_type=resource_type,
             amount=-amount,
         )
+        return ResourceModel(**updated)
 
     async def add_resources(
         self,
@@ -176,7 +201,10 @@ class ResourceService:
         """
         Adds multiple resources.
         """
-
+        if not resources_to_add:
+            raise InvalidResourceAmountException(
+                message="No resources provided."
+            )
         for resource_type, amount in resources_to_add.items():
 
             if amount <= 0:
@@ -193,41 +221,43 @@ class ResourceService:
         )
 
     async def consume_resources(
-        self,
-        world_id: str,
-        required_resources: dict[ResourceType, int],
-    ) -> None:
+            self,
+            world_id: str,
+            required_resources: dict[ResourceType, int],
+     ) -> None:
         """
         Consumes multiple resources.
         """
 
-        resources = await self.get_resources(
-            world_id=world_id,
-        )
-
-        for resource_type, amount in required_resources.items():
-
-            available = resources.resources.get(
-                resource_type,
-                0,
+        if not required_resources:
+            raise InvalidResourceAmountException(
+                message="No resources provided."
             )
 
-            if available < amount:
-                raise InsufficientResourcesException(
+        for resource_type, amount in required_resources.items():
+            if amount <= 0:
+                raise InvalidResourceAmountException(
                     details={
                         "resource": resource_type.value,
-                        "required": amount,
-                        "available": available,
+                        "amount": amount,
                     }
                 )
 
+        has_resources = await self.has_resources(
+            world_id=world_id,
+            required_resources=required_resources,
+        )
+
+        if not has_resources:
+            raise InsufficientResourcesException()
+
         updates = {
             resource_type: -amount
-            for resource_type, amount
-            in required_resources.items()
+            for resource_type, amount in required_resources.items()
         }
 
         await self.repository.update_resources(
             world_id=world_id,
             resource_updates=updates,
         )
+

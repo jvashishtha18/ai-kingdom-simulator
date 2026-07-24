@@ -6,7 +6,6 @@ from app.modules.resources.models import ResourceModel
 from app.shared.repository import BaseRepository
 from app.modules.resources.enums import ResourceType
 
-resource_type: ResourceType
 class ResourceRepository(BaseRepository):
 
     COLLECTION_NAME = "resources"
@@ -35,7 +34,7 @@ class ResourceRepository(BaseRepository):
     async def update_resource(
         self,
         world_id: str,
-        resource_name: str,
+        resource_type: ResourceType,
         amount: int,
    ):
         return await self.collection.find_one_and_update(
@@ -68,5 +67,16 @@ class ResourceRepository(BaseRepository):
                 "$inc": increments,
             },
             return_document=True,
+        )
+
+    async def get_by_world(
+        self,
+        world_id: str,
+    ) -> list[dict]:
+        
+        return await self.find(
+            filter_query={
+                "world_id": world_id,
+            }
         )
                 
